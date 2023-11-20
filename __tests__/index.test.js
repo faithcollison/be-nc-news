@@ -9,6 +9,17 @@ const endpointsObj = require("../endpoints.json")
 beforeEach(() => seed({ articleData, commentData, topicData, userData}));
 afterAll(() => db.end());
 
+describe('ERR: no endpoint reached', () => {
+    test('GET : 404 path not found', () => {
+        return request(app)
+        .get("/api/notARoute")
+        .expect(404)
+        .then((response) => {
+            expect(response.res.statusMessage).toBe('Not Found');
+        })
+    });
+});
+
 describe('GET /api/topics', () => {
     test('GET : 200 sends an array of topic objects to client', () => {
         return request(app)
@@ -22,14 +33,6 @@ describe('GET /api/topics', () => {
                     slug: expect.any(String)
                 })
             })
-        })
-    });
-    test('GET : 404 path not found', () => {
-        return request(app)
-        .get("/api/notARoute")
-        .expect(404)
-        .then((response) => {
-            expect(response.res.statusMessage).toBe('Not Found');
         })
     });
 });
@@ -68,14 +71,6 @@ describe('GET /api/articles', () => {
                 })
             })
             expect(response.body.articles).toBeSortedBy('created_at', {descending:true})
-        })
-    });
-    test('GET : 404 path not found', () => {
-        return request(app)
-        .get("/api/notARoute")
-        .expect(404)
-        .then((response) => {
-            expect(response.res.statusMessage).toBe('Not Found');
         })
     });
 });
