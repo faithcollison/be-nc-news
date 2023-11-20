@@ -8,3 +8,7 @@ exports.getTopics = (req, res, next) => {
         console.log(err)
     });
 }
+
+exports.getArticle = (req, res, next) => {
+    selectArticleById().then()
+}

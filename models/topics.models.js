@@ -6,3 +6,7 @@ exports.selectAllTopics = () => {
         return result.rows;
     })
 }
+
+exports.selectArticleById = () => {
+
+}
