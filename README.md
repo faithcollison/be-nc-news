@@ -1,3 +1,6 @@
 # Northcoders News API
 
-For instructions, please head over to [L2C NC News](https://l2c.northcoders.com/courses/be/nc-news).
+## Cloning this database
+
+Create `.env.test` and `.env.development` files. 
+Set environment variable `PGDATABASE=(name of your database)`
