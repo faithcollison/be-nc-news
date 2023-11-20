@@ -3,6 +3,7 @@ const request = require('supertest');
 const db = require('../db/connection.js');
 const seed = require('../db/seeds/seed.js');
 const {articleData, commentData, topicData, userData} = require("../db/data/test-data/index.js")
+const endpointsObj = require("../endpoints.json")
 
 
 beforeEach(() => seed({ articleData, commentData, topicData, userData}));
@@ -63,5 +64,16 @@ describe('GET /api/articles/:article_id', () => {
         .then((response) => {
             expect(response.body.msg).toBe('Bad request');
         });
+    });
+});
+
+describe('GET /api', () => {
+    test('GET: 200 sends object containing all available endpoints to client', () => {
+        return request(app)
+        .get("/api")
+        .expect(200)
+        .then((response) => {
+            expect(response.body).toMatchObject(endpointsObj)
+        })
     });
 });
