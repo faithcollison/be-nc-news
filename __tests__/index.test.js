@@ -46,7 +46,7 @@ describe('GET /api', () => {
 });
 
 describe('GET /api/articles', () => {
-    test.only('GET: 200 sends array of all articles to client', () => {
+    test('GET: 200 sends array of all articles to client', () => {
         return request(app)
         .get("/api/articles")
         .expect(200)
@@ -68,6 +68,14 @@ describe('GET /api/articles', () => {
                 })
             })
             expect(response.body.articles).toBeSortedBy('created_at', {descending:true})
+        })
+    });
+    test('GET : 404 path not found', () => {
+        return request(app)
+        .get("/api/notARoute")
+        .expect(404)
+        .then((response) => {
+            expect(response.res.statusMessage).toBe('Not Found');
         })
     });
 });
