@@ -51,7 +51,7 @@
     "description": "serves array of all comments for article specified by id",
     "queries": [],
     "exampleResponse": {
-      "articleComments": [
+      "comments": [
         {
           "comment_id": 5,
           "votes": 0,
