@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express();
-const {getTopics, getEndpoints, getArticles,  getArticle} = require("./controllers/controller")
+const {getTopics, getEndpoints} = require("./controllers/topics.controller")
+const {getArticles,  getArticle} = require("./controllers/articles.controller")
 const { handleCustomErrors, handlePsqlErrors, handleServerErrors } = require('./errors');
 
 app.get("/api/topics", getTopics)
