@@ -140,9 +140,22 @@ describe("POST /api/articles/:article_id/comments", () => {
             expect(response.body.msg).toBe('Bad request');
         });
     });
-    test('POST:400 responds with an appropriate status and error message when provided with a bad comment (no username given)', () => {
+    test('POST:400 responds with an appropriate status and error message when provided with comment with missing information (no username given)', () => {
         const newComment = {
             body: "10/10 enjoyed, will be reading this again."
+        };
+        return request(app)
+        .post("/api/articles/1/comments")
+        .send(newComment)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+    test('POST:400 responds with an appropriate status and error message when given an invalid username', () => {
+        const newComment = {
+            body: "10/10 enjoyed, will be reading this again.",
+            username: "hocuspocus20"
         };
         return request(app)
         .post("/api/articles/1/comments")
