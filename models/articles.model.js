@@ -20,10 +20,12 @@ exports.selectArticleById = (article_id) => {
     })
 } 
 
-exports.selectArticleComment = (article_id) => {
-    return db.query(`SELECT comments.comment_id, comments.votes, comments.created_at, comments.author, comments.body, comments.article_id from comments JOIN articles ON comments.article_id = articles.article_id WHERE articles.article_id = $1 ORDER BY comments.created_at DESC;`, [article_id])
+exports.addComment = (article_id, newComment) => {
+    const {body, username} = newComment
+    return db
+    .query(`INSERT INTO comments(body, article_id, author) VALUES($1, $2, $3) RETURNING *;`,[body, article_id, username]) 
     .then((result) => {
-        return result.rows
+        return result.rows[0]
     })
 }
 
@@ -38,5 +40,12 @@ exports.updateArticleVotes = (article_id, updateVotes) => {
             })
         }
         return result.rows[0]
+    })
+}
+
+exports.selectArticleComment = (article_id) => {
+    return db.query(`SELECT comments.comment_id, comments.votes, comments.created_at, comments.author, comments.body, comments.article_id from comments JOIN articles ON comments.article_id = articles.article_id WHERE articles.article_id = $1 ORDER BY comments.created_at DESC;`, [article_id])
+    .then((result) => {
+        return result.rows
     })
 }
