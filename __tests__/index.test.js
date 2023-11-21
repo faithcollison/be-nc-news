@@ -109,7 +109,7 @@ describe('GET /api/articles', () => {
 });
 
 describe("POST /api/articles/:article_id/comments", () => {
-    test.only('POST: 200 adds new comment for given article', () => {
+    test('POST: 200 adds new comment for given article', () => {
         const newComment = {
             body: "10/10 enjoyed, will be reading this again.",
             username: "butter_bridge"
@@ -126,5 +126,30 @@ describe("POST /api/articles/:article_id/comments", () => {
             expect(body.comment.article_id).toBe(2);
             expect(typeof body.comment.created_at).toBe("string");
         }) 
+    });
+    test('POST: 400 sends an appropriate status and error message when given a non-existent article_id', () => {
+        const newComment = {
+            body: "10/10 enjoyed, will be reading this again.",
+            username: "butter_bridge"
+        };
+        return request(app)
+        .post("/api/articles/20/comments")
+        .send(newComment)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+    test('POST:400 responds with an appropriate status and error message when provided with a bad comment (no username given)', () => {
+        const newComment = {
+            body: "10/10 enjoyed, will be reading this again."
+        };
+        return request(app)
+        .post("/api/articles/1/comments")
+        .send(newComment)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
     });
 })
