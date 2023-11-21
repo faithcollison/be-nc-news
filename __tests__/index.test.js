@@ -107,3 +107,24 @@ describe('GET /api/articles', () => {
         })
     });
 });
+
+describe("POST /api/articles/:article_id/comments", () => {
+    test.only('POST: 200 adds new comment for given article', () => {
+        const newComment = {
+            body: "10/10 enjoyed, will be reading this again.",
+            username: "butter_bridge"
+        };
+        return request(app)
+        .post("/api/articles/2/comments")
+        .send(newComment)
+        .expect(201)
+        .then(({body}) => {
+            expect(body.comment.comment_id).toBe(19);
+            expect(body.comment.body).toBe("10/10 enjoyed, will be reading this again.");
+            expect(body.comment.votes).toBe(0);
+            expect(body.comment.author).toBe("butter_bridge");
+            expect(body.comment.article_id).toBe(2);
+            expect(typeof body.comment.created_at).toBe("string");
+        }) 
+    });
+})
