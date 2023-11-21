@@ -154,3 +154,56 @@ describe('GET /api/articles/:article_id/comments', () => {
         });
     });
 });
+
+describe('PATCH /api/articles/:article_id', () => {
+    test('PATCH:200 updates article votes by positive number', () => {
+        const voteChange = {inc_votes: 40}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(200)
+        .then((response) => {
+            expect(response.body.article.votes).toBe(140)
+        })
+    });
+    test('PATCH:200 updates article votes by negative number', () => {
+        const voteChange = {inc_votes: -50}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(200)
+        .then((response) => {
+            expect(response.body.article.votes).toBe(50)
+        })
+    });
+    test('PATCH:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
+        const voteChange = {inc_votes: 50}
+        return request(app)
+        .patch("/api/articles/30")
+        .send(voteChange)
+        .expect(404)
+        .then((response) => {
+            expect(response.body.msg).toBe('Article not found');
+        });
+    });
+    test('PATCH:400 sends an appropriate status and error message when given an invalid id', () => {
+        const voteChange = {inc_votes: 50}
+        return request(app)
+        .patch("/api/articles/banana")
+        .send(voteChange)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+    test('PATCH:400 sends an appropriate status and error message when given an invalid vote change', () => {
+        const voteChange = {inc_votes: "banana"}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+});
