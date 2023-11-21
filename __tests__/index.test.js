@@ -108,6 +108,53 @@ describe('GET /api/articles', () => {
     });
 });
 
+describe('GET /api/articles/:article_id/comments', () => {
+    test('GET: 200 sends array of comments for given article_id to the client', () => {
+        return request(app)
+        .get("/api/articles/1/comments")
+        .expect(200)
+        .then((response) => {
+            // console.log(response.body)
+            expect(response.body.comments.length).toBe(11);
+            response.body.comments.forEach((comment)=> {
+                expect(comment).toMatchObject({
+                    comment_id: expect.any(Number),
+                    votes: expect.any(Number),
+                    created_at: expect.any(String),
+                    author: expect.any(String),
+                    body: expect.any(String),
+                    article_id: expect.any(Number)
+                })
+            })
+            expect(response.body.comments).toBeSortedBy("created_at", {descending:true})
+        })
+    });
+    test('GET: 200 responds with an empty array if article_id exists but there are no comments with that id', () => {
+        return request(app)
+        .get("/api/articles/2/comments")
+        .expect(200)
+        .then((response) => {
+            expect(response.body.comments).toEqual([])
+        })
+    });
+    test('GET:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
+        return request(app)
+        .get("/api/articles/30/comments")
+        .expect(404)
+        .then((response) => {
+            expect(response.body.msg).toBe('Article does not exist');
+        });
+    });
+    test('GET:400 sends an appropriate status and error message when given an invalid id', () => {
+        return request(app)
+        .get("/api/articles/banana/comments")
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    })
+});
+
 describe("POST /api/articles/:article_id/comments", () => {
     test('POST: 200 adds new comment for given article', () => {
         const newComment = {
@@ -140,7 +187,7 @@ describe("POST /api/articles/:article_id/comments", () => {
             expect(response.body.msg).toBe('Bad request');
         });
     });
-    test('POST:400 responds with an appropriate status and error message when provided with comment with missing information (no username given)', () => {
+    test('POST:400 responds with an appropriate status and error message when provided with a bad comment (no username given)', () => {
         const newComment = {
             body: "10/10 enjoyed, will be reading this again."
         };
@@ -152,10 +199,9 @@ describe("POST /api/articles/:article_id/comments", () => {
             expect(response.body.msg).toBe('Bad request');
         });
     });
-    test('POST:400 responds with an appropriate status and error message when given an invalid username', () => {
+    test('POST:400 responds with an appropriate status and error message when provided with a bad comment (no username given)', () => {
         const newComment = {
-            body: "10/10 enjoyed, will be reading this again.",
-            username: "hocuspocus20"
+            body: "10/10 enjoyed, will be reading this again."
         };
         return request(app)
         .post("/api/articles/1/comments")
@@ -165,4 +211,59 @@ describe("POST /api/articles/:article_id/comments", () => {
             expect(response.body.msg).toBe('Bad request');
         });
     });
+});
+
+describe('PATCH /api/articles/:article_id', () => {
+    test('PATCH:200 updates article votes by positive number', () => {
+        const voteChange = {inc_votes: 40}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(200)
+        .then((response) => {
+            expect(response.body.article.votes).toBe(140)
+        })
+    });
+    test('PATCH:200 updates article votes by negative number', () => {
+        const voteChange = {inc_votes: -50}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(200)
+        .then((response) => {
+            expect(response.body.article.votes).toBe(50)
+        })
+    });
+    test('PATCH:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
+        const voteChange = {inc_votes: 50}
+        return request(app)
+        .patch("/api/articles/30")
+        .send(voteChange)
+        .expect(404)
+        .then((response) => {
+            expect(response.body.msg).toBe('Article not found');
+        });
+    });
+    test('PATCH:400 sends an appropriate status and error message when given an invalid id', () => {
+        const voteChange = {inc_votes: 50}
+        return request(app)
+        .patch("/api/articles/banana")
+        .send(voteChange)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+    
+    test('PATCH:400 sends an appropriate status and error message when given an invalid vote change', () => {
+        const voteChange = {inc_votes: "banana"}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
 })
+

@@ -1,4 +1,4 @@
-const {selectArticles, selectArticleById, addComment} = require("../models/articles.model")
+const {selectArticles, selectArticleById, selectArticleComment, updateArticleVotes, addComment} = require("../models/articles.model")
 
 exports.getArticles = (req, res, next) => {
     selectArticles()
@@ -13,7 +13,31 @@ exports.getArticle = (req, res, next) => {
     .then((article) => {
         res.status(200).send({article})
     })
-    .catch(next);
+    .catch(next)
+}
+
+exports.getArticleComment = (req, res, next) => {
+    const {article_id} = req.params
+    
+    const articlePromises = [selectArticleComment(article_id), selectArticleById(article_id)]
+
+    Promise.all(articlePromises)
+    .then((resolvedPromises) => {
+        const articleComments = resolvedPromises[0]
+        res.status(200).send({comments: articleComments})
+    })
+    .catch(next)
+}
+
+exports.updateArticle = (req, res, next) => {
+    const{article_id} = req.params
+    const updateVotes = req.body
+    updateArticleVotes(article_id, updateVotes)
+    .then((article) => {
+        console.log(article)
+        res.status(200).send({article})
+    })
+    .catch(next)
 }
 
 exports.postComment = (req, res, next) => {
