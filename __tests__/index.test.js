@@ -143,7 +143,7 @@ describe('GET /api/articles/:article_id/comments', () => {
         .get("/api/articles/30/comments")
         .expect(404)
         .then((response) => {
-            expect(response.body.msg).toBe('Article does not exist');
+            expect(response.body.msg).toBe('not found');
         });
     });
     test('GET:400 sends an appropriate status and error message when given an invalid id', () => {
@@ -292,6 +292,48 @@ describe('DELETE /api/comments/:comment_id', () => {
     });
 });
 
+describe('GET /api/articles (topic query)', () => {
+    test('GET: 200 filters articles by topic specified in query', () => {
+        return request(app)
+        .get('/api/articles?topic=cats')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles.length).toBe(1)
+            response.body.articles.forEach((article) => {
+                expect(article).toMatchObject({
+                    author: expect.any(String),
+                    title: expect.any(String),
+                    article_id: expect.any(Number),
+                    topic: 'cats',
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                })
+                expect(article).not.toMatchObject({
+                    body: expect.any(String)
+                });
+            })
+        })
+    })
+    test('GET: 200 responds with an empty array if topic exists but has no associated articles', () => {
+        return request(app)
+        .get('/api/articles?topic=paper')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles).toEqual([])
+        })
+    });
+    test('GET:404 sends an appropriate status and error message when given a topic that doesn"t exist ', () => {
+        return request(app)
+        .get('/api/articles?topic=dogs')
+        .expect(404)
+        .then((response) => {
+            expect(response.body.msg).toBe('not found')
+        })
+    }); 
+});
+
 describe('GET /api/users', () => {
     test('GET:200 sends array of user objects back to client', () => {
         return request(app)
@@ -307,5 +349,5 @@ describe('GET /api/users', () => {
                 })
             })
         })
-    });
-});
+    })
+})
