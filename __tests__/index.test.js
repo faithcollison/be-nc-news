@@ -290,3 +290,61 @@ describe('DELETE /api/comments/:comment_id', () => {
         })
     });
 });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+describe('GET /api/articles (topic query)', () => {
+    test('GET: 200 filters articles by topic specified in query', () => {
+        return request(app)
+        .get('/api/articles?topic=cats')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles.length).toBe(1)
+            response.body.articles.forEach((article) => {
+                expect(article.topic).toBe('cats');
+                expect(article).toMatchObject({
+                    author: expect.any(String),
+                    title: expect.any(String),
+                    article_id: expect.any(Number),
+                    topic: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                })
+                expect(article).not.toMatchObject({
+                    body: expect.any(String)
+                })
+            })
+        })
+    });
+    test('GET:404 sends an appropriate status and error message when given a valid but non-existent topic ', () => {
+        return request(app)
+        .get('/api/articles?topic=dogs')
+        .expect(404)
+        .then((response) => {
+            expect(response.body.msg).toBe('Topic does not exist')
+        })
+    });
+});

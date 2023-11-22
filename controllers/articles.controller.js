@@ -1,7 +1,8 @@
 const {selectArticles, selectArticleById, selectArticleComment, updateArticleVotes, addComment, deleteCommentById} = require("../models/articles.model")
 
 exports.getArticles = (req, res, next) => {
-    selectArticles()
+    const topicQuery = req.query.topic
+    selectArticles(topicQuery)
     .then((articles) => {
         res.status(200).send({articles})
     })
