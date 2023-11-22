@@ -50,8 +50,9 @@ describe('GET /api/articles/:article_id', () => {
             expect(response.body.article.votes).toBe(100);
             expect(typeof response.body.article.created_at).toBe('string');
             expect(response.body.article.article_img_url).toBe("https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700");
-        })
-    });
+            expect(response.body.article.comment_count).toBe('11')
+        });
+    })
     test('GET:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
         return request(app)
         .get("/api/articles/20")
@@ -311,10 +312,10 @@ describe('GET /api/articles (topic query)', () => {
                 })
                 expect(article).not.toMatchObject({
                     body: expect.any(String)
-                })
+                });
             })
         })
-    });
+    })
     test('GET: 200 responds with an empty array if topic exists but has no associated articles', () => {
         return request(app)
         .get('/api/articles?topic=paper')
@@ -332,3 +333,21 @@ describe('GET /api/articles (topic query)', () => {
         })
     }); 
 });
+
+describe('GET /api/users', () => {
+    test('GET:200 sends array of user objects back to client', () => {
+        return request(app)
+        .get('/api/users')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.users.length).toBe(4)
+            response.body.users.forEach((user) => {
+                expect(user).toMatchObject({
+                    username: expect.any(String),
+                    name: expect.any(String),
+                    avatar_url: expect.any(String)
+                })
+            })
+        })
+    })
+})
