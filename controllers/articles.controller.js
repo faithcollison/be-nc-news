@@ -1,12 +1,20 @@
+const { checkExists } = require("../db/seeds/utils");
 const {selectArticles, selectArticleById, selectArticleComment, updateArticleVotes, addComment, deleteCommentById} = require("../models/articles.model")
 
 exports.getArticles = (req, res, next) => {
     const topicQuery = req.query.topic
-    selectArticles(topicQuery)
-    .then((articles) => {
+    const articlePromises = [selectArticles(topicQuery)];
+
+    if(topicQuery){
+        articlePromises.push(checkExists("topics", "slug", topicQuery))
+    }
+    Promise.all(articlePromises)
+    .then((resolvedPromises) => {
+        const articles = resolvedPromises[0]
         res.status(200).send({articles})
     })
     .catch(next);
+
 }
 exports.getArticle = (req, res, next) => {
     const {article_id} = req.params
@@ -19,9 +27,12 @@ exports.getArticle = (req, res, next) => {
 
 exports.getArticleComment = (req, res, next) => {
     const {article_id} = req.params
+    const articlePromises = [selectArticleComment(article_id)];
     
-    const articlePromises = [selectArticleComment(article_id), selectArticleById(article_id)]
-
+    if(article_id){
+        articlePromises.push(checkExists("articles", "article_id", article_id))
+    }
+    
     Promise.all(articlePromises)
     .then((resolvedPromises) => {
         const articleComments = resolvedPromises[0]
