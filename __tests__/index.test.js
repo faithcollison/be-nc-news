@@ -50,8 +50,9 @@ describe('GET /api/articles/:article_id', () => {
             expect(response.body.article.votes).toBe(100);
             expect(typeof response.body.article.created_at).toBe('string');
             expect(response.body.article.article_img_url).toBe("https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700");
-        })
-    });
+            expect(response.body.article.comment_count).toBe('11')
+        });
+    })
     test('GET:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
         return request(app)
         .get("/api/articles/20")
