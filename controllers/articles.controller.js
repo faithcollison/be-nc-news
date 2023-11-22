@@ -1,4 +1,4 @@
-const {selectArticles, selectArticleById, selectArticleComment, updateArticleVotes, addComment} = require("../models/articles.model")
+const {selectArticles, selectArticleById, selectArticleComment, updateArticleVotes, addComment, deleteCommentById} = require("../models/articles.model")
 
 exports.getArticles = (req, res, next) => {
     selectArticles()
@@ -34,7 +34,6 @@ exports.updateArticle = (req, res, next) => {
     const updateVotes = req.body
     updateArticleVotes(article_id, updateVotes)
     .then((article) => {
-        console.log(article)
         res.status(200).send({article})
     })
     .catch(next)
@@ -46,6 +45,15 @@ exports.postComment = (req, res, next) => {
     addComment(article_id, newComment)
     .then((comment) => {
         res.status(201).send({comment})
+    })
+    .catch(next)
+}
+
+exports.deleteComment = (req, res, next) => {
+    const{comment_id} = req.params
+    deleteCommentById(comment_id)
+    .then(() => {
+        res.status(204).send()
     })
     .catch(next)
 }
