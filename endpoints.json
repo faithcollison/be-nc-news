@@ -46,6 +46,25 @@
       ]
     }
   },
+  "PATCH /api/articles/:article_id": {
+    "description": "update vote count for article specified by id",
+    "queries": [],
+    "exampleInput": { "inc_votes" : 1 },
+    "exampleResponse": {
+      "article": [
+        {
+          "article_id": 1,
+          "title": "'Living in the shadow of a great man'",
+          "topic": "mitch",
+          "author": "butter_bridge",
+          "body": "I find this existence challenging",
+          "created_at": "2020-07-09T20:11:00.000Z",
+          "votes": 50,
+          "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+        }
+      ]
+    }
+  },
   "GET /api/articles/:article_id/comments": {
     "description": "serves array of all comments for article specified by id",
     "queries": [],
@@ -62,7 +81,24 @@
       ]
     }
   },
-
+  "POST /api/articles/:article_id/comments": {
+    "description": "adds comment to given article chosen by id",
+    "queries": [],
+    "exampleInput": {
+      "body": "10/10 enjoyed, will be reading this again.",
+      "username": "butter_bridge"
+    }, 
+    "exampleResponse": {
+      "comment": {
+        "comment_id": 19,
+        " body": "10/10 enjoyed, will be reading this again.",
+        " article_id": 2,
+        " author": "butter_bridge",
+        "votes": 0,
+        " created_at":" 2023-11-21T14:49:52.766Z"
+      }
+    }
+  },
   "GET /api/users": {
     "description": "serves an array of all users",
     "queries": [],
@@ -76,7 +112,6 @@
       ]
     }
   },
-
   "GET /api/users/:username": {
     "description": "returns user specified by username",
     "queries": [],
@@ -90,41 +125,23 @@
       ]
     }
   },
-
-  "POST /api/articles/:article_id/comments": {
-    "description": "adds comment to given article chosen by id",
+  "PATCH /api/comments/:commentid": {
+    "description": "update vote count for comment specified by id",
     "queries": [],
+    "exampleInput": { "inc_votes" : 1 },
     "exampleResponse": {
-      "comment": {
-        "comment_id": 19,
-        " body": "10/10 enjoyed, will be reading this again.",
-        " article_id": 2,
-        " author": "butter_bridge",
-        "votes": 0,
-        " created_at":" 2023-11-21T14:49:52.766Z"
-      }
-    }
-  },
-
-  "PATCH /api/articles/:article_id": {
-    "description": "update vote count for article specified by id",
-    "queries": [],
-    "exampleResponse": {
-      "article": [
+      "comment": [
         {
-          "article_id": 1,
-          "title": "'Living in the shadow of a great man'",
-          "topic": "mitch",
+          "comment_id": 1,
+          "body": "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+          "article_id": 9,
           "author": "butter_bridge",
-          "body": "I find this existence challenging",
-          "created_at": "2020-07-09T20:11:00.000Z",
-          "votes": 50,
-          "article_img_url": "https://images.pexels.com/photos/158651/news-newsletter-newspaper-information-158651.jpeg?w=700&h=700"
+          "votes": 20,
+          "created_at": "2020-04-06T12:17:00.000Z"
         }
       ]
     }
   },
-
   "DELETE /api/comments/:comment_id": {
     "description": "delete comment specified by id, return no content",
     "queries": [],

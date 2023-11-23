@@ -64,6 +64,109 @@ describe('GET /api/articles', () => {
     });
 });
 
+describe('GET /api/articles (topic query)', () => {
+    test('GET: 200 filters articles by topic specified in query', () => {
+        return request(app)
+        .get('/api/articles?topic=cats')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles.length).toBe(1)
+            response.body.articles.forEach((article) => {
+                expect(article).toMatchObject({
+                    author: expect.any(String),
+                    title: expect.any(String),
+                    article_id: expect.any(Number),
+                    topic: 'cats',
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                })
+                expect(article).not.toMatchObject({
+                    body: expect.any(String)
+                });
+            })
+        })
+    })
+    test('GET: 200 responds with an empty array if topic exists but has no associated articles', () => {
+        return request(app)
+        .get('/api/articles?topic=paper')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles).toEqual([])
+        })
+    });
+    test('GET:404 sends an appropriate status and error message when given a topic that doesn"t exist ', () => {
+        return request(app)
+        .get('/api/articles?topic=dogs')
+        .expect(404)
+        .then((response) => {
+            expect(response.body.msg).toBe('not found')
+        })
+    }); 
+});
+
+describe('GET /api/articles (sorting queries)', () => {
+    test('GET: 200 sorts articles by any valid column set by user, by default descending order', () => {
+        return request(app)
+        .get('/api/articles?sort_by=author')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles.length).toBe(13);
+            expect(response.body.articles).toBeSortedBy('author', {descending:true});
+            response.body.articles.forEach((article) => {
+                expect(article).toMatchObject({
+                    author: expect.any(String),
+                    title: expect.any(String),
+                    article_id: expect.any(Number),
+                    topic: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                })
+            })
+        })   
+    })
+    test('GET: 200 sorts articles by any valid column set by user, by order determined by user', () => {
+        return request(app)
+        .get('/api/articles?sort_by=title&order=asc')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles.length).toBe(13);
+            expect(response.body.articles).toBeSortedBy('title', {ascending:true});
+            response.body.articles.forEach((article) => {
+                expect(article).toMatchObject({
+                    author: expect.any(String),
+                    title: expect.any(String),
+                    article_id: expect.any(Number),
+                    topic: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                })
+            })
+        })   
+    })
+    test('GET:400 sends an appropriate status and error message when given a sort_by column value that is invalid ', () => {
+        return request(app)
+        .get('/api/articles?sort_by=banana')
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request')
+        })
+    }); 
+    test('GET:400 sends an appropriate status and error message when given a order query value that is invalid', () => {
+        return request(app)
+        .get('/api/articles?sort_by=author&order=99')
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request')
+        })
+    }); 
+})
+
 describe('GET /api/articles/:article_id', () => {
     test('GET : 200 sends a single article to client', () => {
         return request(app)
@@ -98,6 +201,60 @@ describe('GET /api/articles/:article_id', () => {
         });
     });
 });
+
+describe('PATCH /api/articles/:article_id', () => {
+    test('PATCH:200 updates article votes by positive number', () => {
+        const voteChange = {inc_votes: 40}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(200)
+        .then((response) => {
+            expect(response.body.article.votes).toBe(140)
+        })
+    });
+    test('PATCH:200 updates article votes by negative number', () => {
+        const voteChange = {inc_votes: -50}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(200)
+        .then((response) => {
+            expect(response.body.article.votes).toBe(50)
+        })
+    });
+    test('PATCH:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
+        const voteChange = {inc_votes: 50}
+        return request(app)
+        .patch("/api/articles/30")
+        .send(voteChange)
+        .expect(404)
+        .then((response) => {
+            expect(response.body.msg).toBe('Article not found');
+        });
+    });
+    test('PATCH:400 sends an appropriate status and error message when given an invalid id', () => {
+        const voteChange = {inc_votes: 50}
+        return request(app)
+        .patch("/api/articles/banana")
+        .send(voteChange)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+    
+    test('PATCH:400 sends an appropriate status and error message when given an invalid vote change', () => {
+        const voteChange = {inc_votes: "banana"}
+        return request(app)
+        .patch("/api/articles/1")
+        .send(voteChange)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+})
 
 describe('GET /api/articles/:article_id/comments', () => {
     test('GET: 200 sends array of comments for given article_id to the client', () => {
@@ -204,41 +361,55 @@ describe("POST /api/articles/:article_id/comments", () => {
     });
 });
 
-describe('PATCH /api/articles/:article_id', () => {
-    test('PATCH:200 updates article votes by positive number', () => {
-        const voteChange = {inc_votes: 40}
+describe('PATCH /api/comments/:comment_id', () => {
+    test('PATCH 200: update votes on comment, with positive number', () => {
+        const voteChange = {inc_votes: 4}
         return request(app)
-        .patch("/api/articles/1")
+        .patch("/api/comments/1")
         .send(voteChange)
         .expect(200)
         .then((response) => {
-            expect(response.body.article.votes).toBe(140)
+            expect(response.body.comment).toMatchObject({
+                comment_id: 1,
+                body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                votes: 20,
+                author: "butter_bridge",
+                article_id: 9,
+                created_at: expect.any(String)
+            })
         })
     });
-    test('PATCH:200 updates article votes by negative number', () => {
-        const voteChange = {inc_votes: -50}
+    test('PATCH 200: update votes on comment, with negative number', () => {
+        const voteChange = {inc_votes: -4}
         return request(app)
-        .patch("/api/articles/1")
+        .patch("/api/comments/1")
         .send(voteChange)
         .expect(200)
         .then((response) => {
-            expect(response.body.article.votes).toBe(50)
+            expect(response.body.comment).toMatchObject({
+                comment_id: 1,
+                body: "Oh, I've got compassion running out of my nose, pal! I'm the Sultan of Sentiment!",
+                votes: 12,
+                author: "butter_bridge",
+                article_id: 9,
+                created_at: expect.any(String)
+            })
         })
     });
     test('PATCH:404 sends an appropriate status and error message when given a valid but non-existent id', () => {
         const voteChange = {inc_votes: 50}
         return request(app)
-        .patch("/api/articles/30")
+        .patch("/api/comments/30")
         .send(voteChange)
         .expect(404)
         .then((response) => {
-            expect(response.body.msg).toBe('Article not found');
+            expect(response.body.msg).toBe('Comment not found');
         });
     });
     test('PATCH:400 sends an appropriate status and error message when given an invalid id', () => {
         const voteChange = {inc_votes: 50}
         return request(app)
-        .patch("/api/articles/banana")
+        .patch("/api/comments/banana")
         .send(voteChange)
         .expect(400)
         .then((response) => {
@@ -249,14 +420,14 @@ describe('PATCH /api/articles/:article_id', () => {
     test('PATCH:400 sends an appropriate status and error message when given an invalid vote change', () => {
         const voteChange = {inc_votes: "banana"}
         return request(app)
-        .patch("/api/articles/1")
+        .patch("/api/comments/1")
         .send(voteChange)
         .expect(400)
         .then((response) => {
             expect(response.body.msg).toBe('Bad request');
         });
     });
-})
+});
 
 describe('DELETE /api/comments/:comment_id', () => {
     test('DELETE: 204 deletes comment by comment_id and sends no body back', () => {
@@ -281,109 +452,6 @@ describe('DELETE /api/comments/:comment_id', () => {
         })
     });
 });
-
-describe('GET /api/articles (topic query)', () => {
-    test('GET: 200 filters articles by topic specified in query', () => {
-        return request(app)
-        .get('/api/articles?topic=cats')
-        .expect(200)
-        .then((response) => {
-            expect(response.body.articles.length).toBe(1)
-            response.body.articles.forEach((article) => {
-                expect(article).toMatchObject({
-                    author: expect.any(String),
-                    title: expect.any(String),
-                    article_id: expect.any(Number),
-                    topic: 'cats',
-                    created_at: expect.any(String),
-                    votes: expect.any(Number),
-                    article_img_url: expect.any(String),
-                    comment_count: expect.any(String)
-                })
-                expect(article).not.toMatchObject({
-                    body: expect.any(String)
-                });
-            })
-        })
-    })
-    test('GET: 200 responds with an empty array if topic exists but has no associated articles', () => {
-        return request(app)
-        .get('/api/articles?topic=paper')
-        .expect(200)
-        .then((response) => {
-            expect(response.body.articles).toEqual([])
-        })
-    });
-    test('GET:404 sends an appropriate status and error message when given a topic that doesn"t exist ', () => {
-        return request(app)
-        .get('/api/articles?topic=dogs')
-        .expect(404)
-        .then((response) => {
-            expect(response.body.msg).toBe('not found')
-        })
-    }); 
-});
-
-describe('GET /api/articles (sorting queries)', () => {
-    test('GET: 200 sorts articles by any valid column set by user, by default descending order', () => {
-        return request(app)
-        .get('/api/articles?sort_by=author')
-        .expect(200)
-        .then((response) => {
-            expect(response.body.articles.length).toBe(13);
-            expect(response.body.articles).toBeSortedBy('author', {descending:true});
-            response.body.articles.forEach((article) => {
-                expect(article).toMatchObject({
-                    author: expect.any(String),
-                    title: expect.any(String),
-                    article_id: expect.any(Number),
-                    topic: expect.any(String),
-                    created_at: expect.any(String),
-                    votes: expect.any(Number),
-                    article_img_url: expect.any(String),
-                    comment_count: expect.any(String)
-                })
-            })
-        })   
-    })
-    test('GET: 200 sorts articles by any valid column set by user, by order determined by user', () => {
-        return request(app)
-        .get('/api/articles?sort_by=title&order=asc')
-        .expect(200)
-        .then((response) => {
-            expect(response.body.articles.length).toBe(13);
-            expect(response.body.articles).toBeSortedBy('title', {ascending:true});
-            response.body.articles.forEach((article) => {
-                expect(article).toMatchObject({
-                    author: expect.any(String),
-                    title: expect.any(String),
-                    article_id: expect.any(Number),
-                    topic: expect.any(String),
-                    created_at: expect.any(String),
-                    votes: expect.any(Number),
-                    article_img_url: expect.any(String),
-                    comment_count: expect.any(String)
-                })
-            })
-        })   
-    })
-    test('GET:400 sends an appropriate status and error message when given a sort_by column value that is invalid ', () => {
-        return request(app)
-        .get('/api/articles?sort_by=banana')
-        .expect(400)
-        .then((response) => {
-            expect(response.body.msg).toBe('Bad request')
-        })
-    }); 
-    test('GET:400 sends an appropriate status and error message when given a order query value that is invalid', () => {
-        return request(app)
-        .get('/api/articles?sort_by=author&order=99')
-        .expect(400)
-        .then((response) => {
-            expect(response.body.msg).toBe('Bad request')
-        })
-    }); 
-})
 
 describe('GET /api/users', () => {
     test('GET:200 sends array of user objects back to client', () => {
