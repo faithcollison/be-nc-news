@@ -1,4 +1,3 @@
-const { sort } = require("../db/data/test-data/articles");
 const { checkExists } = require("../db/seeds/utils");
 const {selectArticles, selectArticleById, updateArticleVotes} = require("../models/articles.model")
 
