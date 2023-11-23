@@ -61,3 +61,13 @@ exports.updateArticleVotes = (article_id, updateVotes) => {
     })
 }
 
+exports.createArticle = (newArticle) => {
+    const{title, topic, author, body, article_img_url} = newArticle
+    return db.query(`WITH inserted_article AS (INSERT INTO articles(title, topic, author, body, article_img_url) VALUES($1, $2, $3, $4, $5) RETURNING *)
+    SELECT inserted_article.article_id, inserted_article.title, inserted_article.topic, inserted_article.author, inserted_article.created_at, inserted_article.votes, inserted_article.body, inserted_article.article_img_url, COUNT(comments.comment_id) AS comment_count FROM inserted_article LEFT JOIN comments ON inserted_article.article_id = comments.article_id GROUP BY inserted_article.article_id, inserted_article.title, inserted_article.topic, inserted_article.author, inserted_article.created_at, inserted_article.votes, inserted_article.body, inserted_article.article_img_url;`, [title, topic, author, body, article_img_url]) 
+    .then((result) => {
+        return result.rows[0]
+    })
+}
+// db.query(`SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.created_at, articles.votes, articles.body, articles.article_img_url, COUNT(comments.comment_id) AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id;`)
+// `INSERT INTO articles(title, topic, author, body, article_img_url) VALUES($1, $2, $3, $4, $5) RETURNING *;`,[title, topic, author, body, article_img_url]
