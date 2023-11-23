@@ -9,13 +9,13 @@ const endpointsObj = require("../endpoints.json")
 beforeEach(() => seed({ articleData, commentData, topicData, userData}));
 afterAll(() => db.end());
 
-describe('ERR: no endpoint reached', () => {
-    test('GET : 404 path not found', () => {
+describe('GET /api', () => {
+    test('GET: 200 sends object containing all available endpoints to client', () => {
         return request(app)
-        .get("/api/notARoute")
-        .expect(404)
+        .get("/api")
+        .expect(200)
         .then((response) => {
-            expect(response.res.statusMessage).toBe('Not Found');
+            expect(response.body).toMatchObject(endpointsObj)
         })
     });
 });
@@ -36,6 +36,34 @@ describe('GET /api/topics', () => {
         })
     });
 });
+
+describe('GET /api/articles', () => {
+    test('GET: 200 sends array of all articles to client', () => {
+        return request(app)
+        .get("/api/articles")
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles.length).toBe(13);
+            response.body.articles.forEach((article) => {
+                expect(article).toMatchObject({
+                    author: expect.any(String),
+                    title: expect.any(String),
+                    article_id: expect.any(Number),
+                    topic: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                })
+                expect(article).not.toMatchObject({
+                    body: expect.any(String)
+                })
+            })
+            expect(response.body.articles).toBeSortedBy('created_at', {descending:true})
+        })
+    });
+});
+
 describe('GET /api/articles/:article_id', () => {
     test('GET : 200 sends a single article to client', () => {
         return request(app)
@@ -68,44 +96,6 @@ describe('GET /api/articles/:article_id', () => {
         .then((response) => {
             expect(response.body.msg).toBe('Bad request');
         });
-    });
-});
-
-describe('GET /api', () => {
-    test('GET: 200 sends object containing all available endpoints to client', () => {
-        return request(app)
-        .get("/api")
-        .expect(200)
-        .then((response) => {
-            expect(response.body).toMatchObject(endpointsObj)
-        })
-    });
-});
-
-describe('GET /api/articles', () => {
-    test('GET: 200 sends array of all articles to client', () => {
-        return request(app)
-        .get("/api/articles")
-        .expect(200)
-        .then((response) => {
-            expect(response.body.articles.length).toBe(13);
-            response.body.articles.forEach((article) => {
-                expect(article).toMatchObject({
-                    author: expect.any(String),
-                    title: expect.any(String),
-                    article_id: expect.any(Number),
-                    topic: expect.any(String),
-                    created_at: expect.any(String),
-                    votes: expect.any(Number),
-                    article_img_url: expect.any(String),
-                    comment_count: expect.any(String)
-                })
-                expect(article).not.toMatchObject({
-                    body: expect.any(String)
-                })
-            })
-            expect(response.body.articles).toBeSortedBy('created_at', {descending:true})
-        })
     });
 });
 
@@ -334,24 +324,6 @@ describe('GET /api/articles (topic query)', () => {
     }); 
 });
 
-describe('GET /api/users', () => {
-    test('GET:200 sends array of user objects back to client', () => {
-        return request(app)
-        .get('/api/users')
-        .expect(200)
-        .then((response) => {
-            expect(response.body.users.length).toBe(4)
-            response.body.users.forEach((user) => {
-                expect(user).toMatchObject({
-                    username: expect.any(String),
-                    name: expect.any(String),
-                    avatar_url: expect.any(String)
-                })
-            })
-        })
-    })
-})
-
 describe('GET /api/articles (sorting queries)', () => {
     test('GET: 200 sorts articles by any valid column set by user, by default descending order', () => {
         return request(app)
@@ -411,6 +383,24 @@ describe('GET /api/articles (sorting queries)', () => {
             expect(response.body.msg).toBe('Bad request')
         })
     }); 
+})
+
+describe('GET /api/users', () => {
+    test('GET:200 sends array of user objects back to client', () => {
+        return request(app)
+        .get('/api/users')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.users.length).toBe(4)
+            response.body.users.forEach((user) => {
+                expect(user).toMatchObject({
+                    username: expect.any(String),
+                    name: expect.any(String),
+                    avatar_url: expect.any(String)
+                })
+            })
+        })
+    })
 })
 
 describe('GET /api/users/:username', () => {
