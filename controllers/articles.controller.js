@@ -1,13 +1,18 @@
+const { sort } = require("../db/data/test-data/articles");
 const { checkExists } = require("../db/seeds/utils");
 const {selectArticles, selectArticleById, updateArticleVotes} = require("../models/articles.model")
 
 exports.getArticles = (req, res, next) => {
     const topicQuery = req.query.topic
-    const articlePromises = [selectArticles(topicQuery)];
+    const sort_by = req.query.sort_by
+    const order = req.query.order
+
+    const articlePromises = [selectArticles(topicQuery, sort_by, order)];
 
     if(topicQuery){
         articlePromises.push(checkExists("topics", "slug", topicQuery))
     }
+
     Promise.all(articlePromises)
     .then((resolvedPromises) => {
         const articles = resolvedPromises[0]
