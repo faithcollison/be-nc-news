@@ -77,6 +77,20 @@
     }
   },
 
+  "GET /api/users/:username": {
+    "description": "returns user specified by username",
+    "queries": [],
+    "exampleResponse": {
+      "user": [
+        {
+          "username": "lurker",
+          "name": "do_nothing",
+          "avatar_url": "https://www.golenbock.com/wp-content/uploads/2015/01/placeholder-user.png"
+        }
+      ]
+    }
+  },
+
   "POST /api/articles/:article_id/comments": {
     "description": "adds comment to given article chosen by id",
     "queries": [],
