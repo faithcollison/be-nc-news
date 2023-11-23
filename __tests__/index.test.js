@@ -167,6 +167,66 @@ describe('GET /api/articles (sorting queries)', () => {
     }); 
 })
 
+describe('POST /api/articles', () => {
+    test('POST 200: add new article to articles', () => {
+        const newArticle = {
+            title: "Five places to go on holiday",
+            topic: "mitch",
+            author: "butter_bridge",
+            body: "I wish I was always on holiday, I love the sun",
+            article_img_url:"https://plus.unsplash.com/premium_photo-1664124888904-435121e89c74?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+        return request(app)
+        .post('/api/articles')
+        .send(newArticle)
+        .expect(200)
+        .then((response) => {
+            expect(response.body.article).toMatchObject({
+                article_id: 14,
+                title: "Five places to go on holiday",
+                topic: "mitch",
+                author: "butter_bridge",
+                votes: 0,
+                created_at: expect.any(String),
+                body: "I wish I was always on holiday, I love the sun",
+                article_img_url:"https://plus.unsplash.com/premium_photo-1664124888904-435121e89c74?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+                comment_count: expect.any(String)
+            })
+        })
+    });
+    test('POST:400 responds with an appropriate status and error message when provided with a bad article (no author given)', () => {
+        const newArticle = {
+            title: "Five places to go on holiday",
+            topic: "mitch",
+            body: "I wish I was always on holiday, I love the sun",
+            article_img_url:"https://plus.unsplash.com/premium_photo-1664124888904-435121e89c74?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+        return request(app)
+        .post("/api/articles")
+        .send(newArticle)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+    test('POST:400 responds with an appropriate status and error message when given an invalid topic', () => {
+        const newArticle = {
+            title: "Five places to go on holiday",
+            topic: "holidays",
+            author: "butter_bridge",
+            body: "I wish I was always on holiday, I love the sun",
+            article_img_url:"https://plus.unsplash.com/premium_photo-1664124888904-435121e89c74?q=80&w=987&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+        }
+        return request(app)
+        .post("/api/articles")
+        .send(newArticle)
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+});
+
 describe('GET /api/articles/:article_id', () => {
     test('GET : 200 sends a single article to client', () => {
         return request(app)
@@ -347,9 +407,10 @@ describe("POST /api/articles/:article_id/comments", () => {
             expect(response.body.msg).toBe('Bad request');
         });
     });
-    test('POST:400 responds with an appropriate status and error message when provided with a bad comment (no username given)', () => {
+    test('POST:400 responds with an appropriate status and error message when given an invalid username', () => {
         const newComment = {
-            body: "10/10 enjoyed, will be reading this again."
+            body: "10/10 enjoyed, will be reading this again.",
+            username: "hocuspocus20"
         };
         return request(app)
         .post("/api/articles/1/comments")
@@ -359,6 +420,7 @@ describe("POST /api/articles/:article_id/comments", () => {
             expect(response.body.msg).toBe('Bad request');
         });
     });
+
 });
 
 describe('PATCH /api/comments/:comment_id', () => {

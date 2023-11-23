@@ -1,5 +1,5 @@
 const { checkExists } = require("../db/seeds/utils");
-const {selectArticles, selectArticleById, updateArticleVotes} = require("../models/articles.model")
+const {selectArticles, selectArticleById, updateArticleVotes, createArticle} = require("../models/articles.model")
 
 exports.getArticles = (req, res, next) => {
     const topicQuery = req.query.topic
@@ -33,6 +33,15 @@ exports.updateArticle = (req, res, next) => {
     const{article_id} = req.params
     const updateVotes = req.body
     updateArticleVotes(article_id, updateVotes)
+    .then((article) => {
+        res.status(200).send({article})
+    })
+    .catch(next)
+}
+
+exports.addArticle = (req, res, next) => {
+    const newArticle = req.body
+    createArticle(newArticle)
     .then((article) => {
         res.status(200).send({article})
     })
