@@ -43,7 +43,7 @@ describe('GET /api/articles', () => {
         .get("/api/articles")
         .expect(200)
         .then((response) => {
-            expect(response.body.articles.length).toBe(13);
+            expect(response.body.articles.length).toBe(10);
             response.body.articles.forEach((article) => {
                 expect(article).toMatchObject({
                     author: expect.any(String),
@@ -112,7 +112,7 @@ describe('GET /api/articles (sorting queries)', () => {
         .get('/api/articles?sort_by=author')
         .expect(200)
         .then((response) => {
-            expect(response.body.articles.length).toBe(13);
+            expect(response.body.articles.length).toBe(10);
             expect(response.body.articles).toBeSortedBy('author', {descending:true});
             response.body.articles.forEach((article) => {
                 expect(article).toMatchObject({
@@ -133,7 +133,7 @@ describe('GET /api/articles (sorting queries)', () => {
         .get('/api/articles?sort_by=title&order=asc')
         .expect(200)
         .then((response) => {
-            expect(response.body.articles.length).toBe(13);
+            expect(response.body.articles.length).toBe(10);
             expect(response.body.articles).toBeSortedBy('title', {ascending:true});
             response.body.articles.forEach((article) => {
                 expect(article).toMatchObject({
@@ -168,14 +168,67 @@ describe('GET /api/articles (sorting queries)', () => {
 })
 
 describe('GET /api/articles (pagination)', () => {
-    test.only('GET: 200 limits number of responses to number determined', () => {
+    test('GET: 200 articles paginated by query (limit & page)', () => {
         return request(app)
-        .get('/api/articles?topic=mitch&&limit=5')
+        .get('/api/articles?sort_by=article_id&order=asc&limit=6&p=2')
         .expect(200)
         .then((response) => {
-            expect(response.body.articles.length).toBe(5)
+            expect(response.body.articles.length).toBe(6);
+            expect(response.body.articles[0].article_id).toBe(7)
+            response.body.articles.forEach((article) => {
+                expect(article).toMatchObject({
+                    author: expect.any(String),
+                    title: expect.any(String),
+                    article_id: expect.any(Number),
+                    topic: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                })
+            })
         })
     });
+    test('GET: 200 response object contains total_count property', () => {
+        return request(app)
+        .get('/api/articles?topic=mitch&limit=6&p=2')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles.length).toBe(6);
+            expect(response.body).toMatchObject({
+                articles: expect.any(Array),
+                total_count: '12'
+            })
+            response.body.articles.forEach((article) => {
+                expect(article).toMatchObject({
+                    author: expect.any(String),
+                    title: expect.any(String),
+                    article_id: expect.any(Number),
+                    topic: expect.any(String),
+                    created_at: expect.any(String),
+                    votes: expect.any(Number),
+                    article_img_url: expect.any(String),
+                    comment_count: expect.any(String)
+                })
+            })
+        })
+    });
+    test('GET:400 sends an appropriate status and error message when given a limit value that is invalid ', () => {
+        return request(app)
+        .get('/api/articles?sort_by=author&limit=banana')
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request')
+        })
+    }); 
+    test('GET:400 sends an appropriate status and error message when given a page value that is invalid ', () => {
+        return request(app)
+        .get('/api/articles?sort_by=author&limit=3&p=banana')
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request')
+        })
+    }); 
 });
 
 describe('POST /api/articles', () => {
