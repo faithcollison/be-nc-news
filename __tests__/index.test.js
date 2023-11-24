@@ -37,6 +37,37 @@ describe('GET /api/topics', () => {
     });
 });
 
+describe('POST /api/topics', () => {
+    test('POST : 200 add new topic', () => {
+        const newTopic = {
+                "slug": "holidays",
+                "description": "favourite destinations, all welcome"
+        }
+        return request(app)
+        .post('/api/topics')
+        .send((newTopic))
+        .expect(201)
+        .then((response) => {
+            expect(response.body.topic).toMatchObject({
+                "slug": "holidays",
+                "description": "favourite destinations, all welcome"
+            })
+        })
+    });
+    test('POST:400 responds with an appropriate status and error message when provided with a bad topic (no slug given)', () => {
+        const newTopic = {
+            "description": "favourite destinations, all welcome"
+    }
+        return request(app)
+        .post('/api/topics')
+        .send((newTopic))
+        .expect(400)
+        .then((response) => {
+            expect(response.body.msg).toBe('Bad request');
+        });
+    });
+});
+
 describe('GET /api/articles', () => {
     test('GET: 200 sends array of all articles to client', () => {
         return request(app)
