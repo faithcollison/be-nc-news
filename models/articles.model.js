@@ -1,51 +1,44 @@
 const db = require("../db/connection.js")
 
-exports.selectArticles = (topicQuery, sort_by, order, limit) => {
+exports.selectArticles = (topicQuery, sort_by = 'created_at', order = 'desc', limit = 10, page = 1) => {
     const queryValues = []
     const validSortBy = ["article_id", "title", "topic", "author", "body", "created_by", "votes"]
     const validOrder = ['asc', 'desc']
+    const limitNum = parseInt(limit) 
+    const pageNum = parseInt(page)
+    const offset = ((pageNum -1) * limitNum)
 
-    if (sort_by && ! validSortBy.includes(sort_by)) {
+
+    if (sort_by !== 'created_at' && !validSortBy.includes(sort_by)) {
         return Promise.reject({ status: 400, msg: 'Bad request' });
     }
-    else if (order && !validOrder.includes(order)) {
+    else if (order !== 'desc'&& !validOrder.includes(order)) {
         return Promise.reject({ status: 400, msg: 'Bad request' });
     }
-    // else if(typeof limit !== 'number'){
-    //     return Promise.reject({ status: 400, msg: 'Bad request' });
-    // }
-    
+
     let queryStr = `SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.created_at, articles.votes, articles.article_img_url, COUNT(comments.comment_id) AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id `
 
-    if(topicQuery && !limit){
-        queryValues.push(topicQuery)
-        queryStr += `WHERE articles.topic = $1 GROUP BY articles.article_id ORDER BY created_at DESC LIMIT 10;`
-    }
-    else if(sort_by && !order && !limit){
-        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} DESC LIMIT 10`
-    }
-    else if(sort_by && order && !limit){
-        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} ${order} LIMIT 10`
-    }
-    else if(limit && topicQuery){
-        queryValues.push(topicQuery)
-        queryValues.push(limit)
-        queryStr += `WHERE articles.topic = $1 GROUP BY articles.article_id ORDER BY created_at DESC LIMIT $2;`
-    }
-    else if(limit && sort_by && !order){
-        queryValues.push(limit)
-        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} DESC LIMIT $1;`
-    }
-    else if(limit && sort_by && order){
-        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} ${order} LIMIT $1;`
+    if(topicQuery) {
+        queryValues.push(topicQuery, limit)
+        queryStr += `WHERE articles.topic = $1 GROUP BY articles.article_id ORDER BY articles.${sort_by} ${order} LIMIT $2 OFFSET ${offset};`
     }
     else {
-        queryStr += `GROUP BY articles.article_id ORDER BY created_at DESC LIMIT 10;`
-    }    
-    
-    return db.query(queryStr, queryValues)
-        .then((result) => {
-            return result.rows
+        queryValues.push(limit)
+        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} ${order} LIMIT $1 OFFSET ${offset};`
+    }
+
+    let total_count 
+    if(topicQuery){
+        total_count = db.query(`SELECT COUNT(*) FROM articles WHERE topic = $1;`, [topicQuery])
+    }
+    else {
+        total_count = db.query(`SELECT COUNT(*) FROM articles;`)
+    }
+    const articleQuery = db.query(queryStr, queryValues)
+
+    return Promise.all([total_count, articleQuery])
+        .then(([totalCount, articleResponse]) => {
+            return {totalCount : totalCount.rows, queryResponse: articleResponse.rows}
         })
 }
 
@@ -84,5 +77,3 @@ exports.createArticle = (newArticle) => {
         return result.rows[0]
     })
 }
-// db.query(`SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.created_at, articles.votes, articles.body, articles.article_img_url, COUNT(comments.comment_id) AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id;`)
-// `INSERT INTO articles(title, topic, author, body, article_img_url) VALUES($1, $2, $3, $4, $5) RETURNING *;`,[title, topic, author, body, article_img_url]

@@ -6,19 +6,23 @@ exports.getArticles = (req, res, next) => {
     const sort_by = req.query.sort_by
     const order = req.query.order
     const limit = req.query.limit
+    const page = req.query.p
 
-    const articlePromises = [selectArticles(topicQuery, sort_by, order, limit)];
+    const articlePromises = [selectArticles(topicQuery, sort_by, order, limit, page)];
 
     if(topicQuery){
         articlePromises.push(checkExists("topics", "slug", topicQuery))
     }
-
+    
     Promise.all(articlePromises)
-    .then((resolvedPromises) => {
-        const articles = resolvedPromises[0]
-        res.status(200).send({articles})
+    .then(([queryresult]) => {
+        res.status(200).send({
+            total_count: (queryresult.totalCount[0].count),
+            articles: queryresult.queryResponse
+        })
     })
     .catch(next);
+
 
 }
 exports.getArticle = (req, res, next) => {
