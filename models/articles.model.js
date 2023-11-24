@@ -1,31 +1,46 @@
 const db = require("../db/connection.js")
 
-exports.selectArticles = (topicQuery, sort_by, order) => {
+exports.selectArticles = (topicQuery, sort_by, order, limit) => {
     const queryValues = []
     const validSortBy = ["article_id", "title", "topic", "author", "body", "created_by", "votes"]
     const validOrder = ['asc', 'desc']
-    
+
     if (sort_by && ! validSortBy.includes(sort_by)) {
         return Promise.reject({ status: 400, msg: 'Bad request' });
     }
     else if (order && !validOrder.includes(order)) {
         return Promise.reject({ status: 400, msg: 'Bad request' });
     }
+    // else if(typeof limit !== 'number'){
+    //     return Promise.reject({ status: 400, msg: 'Bad request' });
+    // }
     
     let queryStr = `SELECT articles.article_id, articles.title, articles.topic, articles.author, articles.created_at, articles.votes, articles.article_img_url, COUNT(comments.comment_id) AS comment_count FROM articles LEFT JOIN comments ON articles.article_id = comments.article_id `
 
-    if(topicQuery){
+    if(topicQuery && !limit){
         queryValues.push(topicQuery)
-        queryStr += `WHERE articles.topic = $1 GROUP BY articles.article_id ORDER BY created_at DESC;`
+        queryStr += `WHERE articles.topic = $1 GROUP BY articles.article_id ORDER BY created_at DESC LIMIT 10;`
     }
-    else if(sort_by && !order){
-        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} DESC`
+    else if(sort_by && !order && !limit){
+        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} DESC LIMIT 10`
     }
-    else if(sort_by && order){
-        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} ${order}`
+    else if(sort_by && order && !limit){
+        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} ${order} LIMIT 10`
+    }
+    else if(limit && topicQuery){
+        queryValues.push(topicQuery)
+        queryValues.push(limit)
+        queryStr += `WHERE articles.topic = $1 GROUP BY articles.article_id ORDER BY created_at DESC LIMIT $2;`
+    }
+    else if(limit && sort_by && !order){
+        queryValues.push(limit)
+        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} DESC LIMIT $1;`
+    }
+    else if(limit && sort_by && order){
+        queryStr += `GROUP BY articles.article_id ORDER BY articles.${sort_by} ${order} LIMIT $1;`
     }
     else {
-        queryStr += `GROUP BY articles.article_id ORDER BY created_at DESC;`
+        queryStr += `GROUP BY articles.article_id ORDER BY created_at DESC LIMIT 10;`
     }    
     
     return db.query(queryStr, queryValues)

@@ -167,6 +167,17 @@ describe('GET /api/articles (sorting queries)', () => {
     }); 
 })
 
+describe('GET /api/articles (pagination)', () => {
+    test.only('GET: 200 limits number of responses to number determined', () => {
+        return request(app)
+        .get('/api/articles?topic=mitch&&limit=5')
+        .expect(200)
+        .then((response) => {
+            expect(response.body.articles.length).toBe(5)
+        })
+    });
+});
+
 describe('POST /api/articles', () => {
     test('POST 200: add new article to articles', () => {
         const newArticle = {

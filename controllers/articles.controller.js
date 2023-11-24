@@ -5,8 +5,9 @@ exports.getArticles = (req, res, next) => {
     const topicQuery = req.query.topic
     const sort_by = req.query.sort_by
     const order = req.query.order
+    const limit = req.query.limit
 
-    const articlePromises = [selectArticles(topicQuery, sort_by, order)];
+    const articlePromises = [selectArticles(topicQuery, sort_by, order, limit)];
 
     if(topicQuery){
         articlePromises.push(checkExists("topics", "slug", topicQuery))
