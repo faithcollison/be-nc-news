@@ -9,6 +9,23 @@
       "topics": [{ "slug": "football", "description": "Footie!" }]
     }
   },
+  "POST /api/topics": {
+    "description": "adds new topic",
+    "queries": [],
+    "exampleInput": {
+      "slug": "holidays",
+      "description": "favourite destinations, all welcome"
+    },      
+    "exampleResponse": {
+      "topic": [
+        {
+          "slug": "holidays",
+          "description": "favourite destinations, all welcome"
+      }
+      ]
+    }
+  },
+
   "GET /api/articles": {
     "description": "serves an array of all articles",
     "queries": ["topic", "sort_by", "order", "limit", "page(p)"],
