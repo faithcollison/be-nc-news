@@ -2,7 +2,7 @@ const db = require("../db/connection.js")
 
 exports.selectArticles = (topicQuery, sort_by = 'created_at', order = 'desc', limit = 10, page = 1) => {
     const queryValues = []
-    const validSortBy = ["article_id", "title", "topic", "author", "body", "created_by", "votes"]
+    const validSortBy = ["article_id", "title", "topic", "author", "body", "created_at", "votes"]
     const validOrder = ['asc', 'desc']
     const limitNum = parseInt(limit) 
     const pageNum = parseInt(page)
